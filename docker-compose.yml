@@ -1,0 +1,24 @@
+services:
+  article-service:
+    build:
+      context: ./services/article-service
+    ports:
+      - "3001:3000"
+    depends_on:
+      - rabbitmq
+
+  user-service:
+    build:
+      context: ./services/user-service
+    ports:
+      - "3002:3000"
+    depends_on:
+      - rabbitmq
+
+  comment-service:
+    build:
+      context: ./services/comment-service
+    ports:
+      - "3003:3000"
+    depends_on:
+      - rabbitmq
