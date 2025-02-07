@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  article-service:
+    build: .
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mongo
+      - rabbitmq
+    env_file:
+      - .env
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3.11-management  # Версия с UI-панелью
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"  # Основной AMQP порт
+      - "15672:15672" # Web-интерфейс управления
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mongo-data:
