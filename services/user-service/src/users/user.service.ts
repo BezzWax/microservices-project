@@ -1,19 +1,24 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { User, UserDocument } from "./schemas/user.schema";
 import { Model } from "mongoose";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { ClientProxy } from "@nestjs/microservices";
 
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+    constructor(
+        @Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy,
+        @InjectModel(User.name) private userModel: Model<UserDocument>
+    ) {}
 
-    async create(createUserDto: CreateUserDto): Promise<User> {
-        const newUser = new this.userModel(createUserDto);
-        return newUser.save();
-    }
+    async create(createUserDto: CreateUserDto) {
+        const newUser = await new this.userModel(createUserDto).save();
+        this.client.emit('user_created', newUser);
+        return newUser;
+      }
 
     async findAll(): Promise<User[]> {
         return this.userModel.find().exec();
